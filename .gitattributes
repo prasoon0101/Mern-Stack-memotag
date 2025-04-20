@@ -1,2 +1,159 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+
+const solutionData = [
+  {
+    title: "Smart Memory Tags",
+    description: "Tag moments, objects, and routines for instant recall."
+  },
+  {
+    title: "Care Routine Assistant",
+    description: "Helps caregivers track daily tasks and reminders."
+  },
+  {
+    title: "Real-Time Monitoring",
+    description: "AI-powered behavioral insights and alerts."
+  }
+];
+
+const tractionData = [
+  { label: "Preorders", value: "2,000+" },
+  { label: "Clinics onboard", value: "25" },
+  { label: "Pilot Success Rate", value: "92%" }
+];
+
+export default function Home() {
+  const [ctaClicked, setCtaClicked] = useState(false);
+  const [email, setEmail] = useState("");
+  const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState(null);
+
+  const handleWaitlistSubmit = async () => {
+    setSubmitted(false);
+    setError(null);
+
+    if (!email || !email.includes("@")) {
+      setError("Please enter a valid email address.");
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/waitlist", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email })
+      });
+
+      if (res.ok) {
+        setSubmitted(true);
+        setEmail("");
+      } else {
+        const data = await res.json();
+        setError(data.message || "Something went wrong.");
+      }
+    } catch (err) {
+      setError("Network error. Please try again later.");
+    }
+  };
+
+  return (
+    <main className="min-h-screen font-sans bg-white text-gray-900">
+      {/* Hero Section */}
+      <section className="container mx-auto px-4 py-24 text-center flex flex-col items-center">
+        <motion.h1
+          className="text-5xl md:text-6xl font-bold mb-4"
+          initial={{ opacity: 0, y: -40 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+        >
+          AI for Dementia Care
+        </motion.h1>
+        <motion.p
+          className="text-lg md:text-xl max-w-xl mx-auto mb-6"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.3 }}
+        >
+          MemoTag uses AI to assist caregivers, doctors, and families in managing cognitive decline with personalized tagging and memory support.
+        </motion.p>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 1, delay: 0.6 }}
+        >
+          <Button onClick={() => setCtaClicked(true)} size="lg">
+            Join the Waitlist
+          </Button>
+        </motion.div>
+      </section>
+
+      {/* Problem Section */}
+      <section className="bg-gray-50 py-16 px-4 text-center">
+        <h2 className="text-3xl md:text-4xl font-bold mb-6">The Growing Challenge of Dementia</h2>
+        <p className="text-lg max-w-2xl mx-auto mb-6">
+          Over 55 million people live with dementia globally. Early diagnosis and consistent care remain inaccessible to millions, leading to missed moments and avoidable decline.
+        </p>
+        <div className="flex justify-center mt-4">
+          <img src="/stats-graph.svg" alt="Dementia Stats" className="max-w-sm" />
+        </div>
+      </section>
+
+      {/* Solution Section */}
+      <section className="container mx-auto px-4 py-20 grid md:grid-cols-3 gap-8 text-center">
+        {solutionData.map((item, idx) => (
+          <motion.div
+            key={idx}
+            className="bg-white p-6 rounded-2xl shadow-md hover:shadow-xl transition-all"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: idx * 0.2 }}
+          >
+            <h3 className="text-xl font-semibold mb-2">{item.title}</h3>
+            <p className="text-gray-700">{item.description}</p>
+          </motion.div>
+        ))}
+      </section>
+
+      {/* Traction Section */}
+      <section className="bg-blue-50 py-16 text-center">
+        <h2 className="text-3xl md:text-4xl font-bold mb-6">Our Impact So Far</h2>
+        <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto px-4">
+          {tractionData.map(({ label, value }, idx) => (
+            <Card key={idx} className="p-6 rounded-2xl shadow-md">
+              <CardContent>
+                <h3 className="text-2xl font-bold text-blue-700 mb-2">{value}</h3>
+                <p className="text-gray-600">{label}</p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </section>
+
+      {/* CTA / Waitlist Section */}
+      <section className="bg-blue-600 text-white text-center py-16 px-4">
+        <h2 className="text-3xl md:text-4xl font-bold mb-4">Be First to Try MemoTag</h2>
+        <p className="mb-6 text-lg">Join our early access waitlist. Be part of smarter, AI-supported dementia care.</p>
+        <div className="flex flex-col sm:flex-row justify-center items-center gap-4 max-w-xl mx-auto">
+          <Input
+            type="email"
+            placeholder="Enter your email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="p-3 rounded-md w-full sm:w-auto"
+          />
+          <Button onClick={handleWaitlistSubmit} variant="secondary" size="lg">
+            Join Waitlist
+          </Button>
+        </div>
+        {submitted && <p className="mt-4 text-green-200">Thanks! You've been added to the waitlist.</p>}
+        {error && <p className="mt-4 text-red-200">{error}</p>}
+      </section>
+    </main>
+  );
+}
